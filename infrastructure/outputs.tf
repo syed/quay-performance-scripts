@@ -45,3 +45,15 @@ output "lb_name" {
   value = "${kubernetes_service.quay_lb_service.status.0.load_balancer.0.ingress.0.hostname}"
   sensitive   = false
 }
+
+output "aurora_endpoint" {
+  description = "Aurora Endpoint"
+  value = aws_rds_cluster.primary.endpoint
+  sensitive = false
+}
+
+output "bastion_host" {
+  description = "Bastion Host"
+  value = aws_instance.bastion.public_dns
+  sensitive = false
+}

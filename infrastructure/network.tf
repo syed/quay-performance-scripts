@@ -1,6 +1,6 @@
 module "quay_vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "2.77.0"
+  version = "5.0.0"
 
   name                 = "${var.prefix}-vpc"
   cidr                 = "${var.quay_vpc_cidr}"
@@ -23,16 +23,6 @@ data "aws_vpc" "openshift_vpc" {
   id = var.openshift_vpc_id
 }
 
-resource "aws_db_subnet_group" "db_subnet" {
-  name       = "${var.prefix}-subnet"
-  subnet_ids = module.quay_vpc.public_subnets
-
-  tags = {
-    Environment = "${var.prefix}"
-  }
-
-}
-
 resource "aws_db_subnet_group" "db_subnet_group" {
   name       = "${var.prefix}-subnet-group"
   subnet_ids = module.quay_vpc.public_subnets
@@ -51,14 +41,14 @@ resource "aws_security_group" "db_security_group" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [data.aws_vpc.openshift_vpc.cidr_block, "${chomp(data.http.self_public_ip.body)}/32"]
+    cidr_blocks = [data.aws_vpc.openshift_vpc.cidr_block, "${chomp(data.http.self_public_ip.body)}/32", var.quay_vpc_cidr]
   }
 
   egress {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [data.aws_vpc.openshift_vpc.cidr_block, "${chomp(data.http.self_public_ip.body)}/32"]
+    cidr_blocks = [data.aws_vpc.openshift_vpc.cidr_block, "${chomp(data.http.self_public_ip.body)}/32", var.quay_vpc_cidr]
   }
 
   # Postgres
@@ -66,14 +56,14 @@ resource "aws_security_group" "db_security_group" {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = [data.aws_vpc.openshift_vpc.cidr_block, "${chomp(data.http.self_public_ip.body)}/32"]
+    cidr_blocks = [data.aws_vpc.openshift_vpc.cidr_block, "${chomp(data.http.self_public_ip.body)}/32", var.quay_vpc_cidr]
   }
 
   egress {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = [data.aws_vpc.openshift_vpc.cidr_block, "${chomp(data.http.self_public_ip.body)}/32"]
+    cidr_blocks = [data.aws_vpc.openshift_vpc.cidr_block, "${chomp(data.http.self_public_ip.body)}/32", var.quay_vpc_cidr]
   }
 
   # Redis
@@ -137,6 +127,13 @@ resource "aws_security_group" "db_security_group" {
   }
 
   ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"

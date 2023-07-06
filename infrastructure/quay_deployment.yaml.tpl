@@ -304,13 +304,15 @@ stringData:
     USER_EVENTS_REDIS:
       host: ${redis_host}
       port: ${redis_port}
-      ssl: false
+      ssl: true
+      password: ${db_password}
 
     FEATURE_BUILD_SUPPORT: True
     BUILDLOGS_REDIS:
       host: ${redis_host}
       port: ${redis_port}
-      ssl: false
+      ssl: true
+      password: ${db_password}
 
     USERFILES_LOCATION: s3_us_east_1
     LOG_ARCHIVE_LOCATION: s3_us_east_1

@@ -1,0 +1,3 @@
+#cloud-config
+runcmd:
+  - yum install -y tmux postgresql15.x86_64 mariadb105.x86_64

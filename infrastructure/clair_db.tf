@@ -4,7 +4,6 @@ resource "aws_db_instance" "clair_db" {
   allocated_storage      = 50
   engine                 = "postgres"
   engine_version         = "14.2"
-  name                   = "clair"
   username               = "clair"
   password               = var.db_password
   db_subnet_group_name   = aws_db_subnet_group.db_subnet_group.name

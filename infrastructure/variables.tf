@@ -129,3 +129,16 @@ variable "redis_azs" {
   type = list
   default = ["us-east-1a", "us-east-1b"]
 }
+
+variable "aurora_version" {
+  description = "aurora postgresql version"
+  type = string
+  default = "15.2"
+}
+
+variable "bastion_keypair" {
+  description = "Bastion keypair name"
+  type = string
+  default = "syed-quaydev-ssh-keypair"
+ 
+}
