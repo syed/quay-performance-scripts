@@ -20,30 +20,15 @@ resource "aws_iam_role" "dms_assume_role" {
   })
 }
 
-# resource "aws_iam_role" "dms_access_for_endpoint" {
-#   assume_role_policy = aws_iam_role.dms_assume_role.json
-#   name               = "${var.prefix}-dms-access-for-endpoint"
-# }
-
 resource "aws_iam_role_policy_attachment" "dms_access_for_endpoint_AmazonDMSRedshiftS3Role" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDMSRedshiftS3Role"
   role       = aws_iam_role.dms_assume_role.name
 }
 
-# resource "aws_iam_role" "dms_cloudwatch_logs_role" {
-#   assume_role_policy = aws_iam_role.dms_assume_role.json
-#   name               = "${var.prefix}-dms-cloudwatch-logs-role"
-# }
-
 resource "aws_iam_role_policy_attachment" "dms_cloudwatch_logs_role_AmazonDMSCloudWatchLogsRole" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDMSCloudWatchLogsRole"
   role       = aws_iam_role.dms_assume_role.name
 }
-
-# resource "aws_iam_role" "dms_vpc_role" {
-#   assume_role_policy = aws_iam_role.dms_assume_role.json
-#   name               = "${var.prefix}-dms-vpc-role"
-# }
 
 resource "aws_iam_role_policy_attachment" "dms_vpc_role_AmazonDMSVPCManagementRole" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDMSVPCManagementRole"
@@ -55,8 +40,6 @@ resource "aws_iam_role_policy_attachment" "dms_vpc_role_AmazonS3FullAccess" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
   role       = aws_iam_role.dms_assume_role.name
 }
-
-
 
 # Create a new endpoint
 resource "aws_dms_endpoint" "quay_dms_src" {
@@ -122,10 +105,108 @@ resource "aws_dms_replication_instance" "quay_dms_replication_instance" {
 
 
 # Create a new replication task
-resource "aws_dms_replication_task" "test" {
+resource "aws_dms_replication_task" "full_load" {
   migration_type            = "full-load"
   replication_instance_arn  = aws_dms_replication_instance.quay_dms_replication_instance.replication_instance_arn
-  replication_task_id       = "${var.prefix}-dms-replication-task-tf"
+  replication_task_id       = "${var.prefix}-dms-full-load-task-tf"
+  source_endpoint_arn       = aws_dms_endpoint.quay_dms_src.endpoint_arn
+  target_endpoint_arn = aws_dms_endpoint.quay_dms_dest.endpoint_arn
+
+  lifecycle {
+	  ignore_changes = ["replication_task_settings"]
+  }
+
+  table_mappings = <<EOF
+  {
+    "rules": [
+        {
+            "rule-type": "selection",
+            "rule-id": "1",
+            "rule-name": "select-quay",
+            "object-locator": {
+                "schema-name": "quay",
+                "table-name": "%"
+            },
+            "rule-action": "include",
+            "filters": []
+        },
+        {
+          "rule-type": "transformation",
+          "rule-id": "2",
+          "rule-name": "convert-tinyint-boolean",
+          "rule-action": "change-data-type",
+          "rule-target": "column",
+          "object-locator": {
+                "schema-name": "quay",
+                "table-name": "%",
+                "column-name": "%",
+                "data-type": "int1"
+          },
+          "data-type": {
+            "type": "boolean"
+          }
+        }
+    ]
+  }
+  EOF
+
+  replication_task_settings = <<EOF
+  {
+    "TargetMetadata": {
+      "TargetSchema": "public",
+      "SupportLobs": true,
+      "FullLobMode": false,
+      "LobChunkSize": 64,
+      "LimitedSizeLobMode": true,
+      "LobMaxSize": 32,
+      "InlineLobMaxSize": 0,
+      "LoadMaxFileSize": 0,
+      "ParallelLoadThreads": 0,
+      "ParallelLoadBufferSize":0,
+      "ParallelLoadQueuesPerThread": 1,
+      "ParallelApplyThreads": 0,
+      "ParallelApplyBufferSize": 100,
+      "ParallelApplyQueuesPerThread": 1,    
+      "BatchApplyEnabled": false,
+      "TaskRecoveryTableEnabled": false
+    },  
+    "FullLoadSettings": {
+      "TargetTablePrepMode": "DROP_AND_CREATE",
+      "CreatePkAfterFullLoad": false,
+      "StopTaskCachedChangesApplied": false,
+      "StopTaskCachedChangesNotApplied": false,
+      "MaxFullLoadSubTasks": 8,
+      "TransactionConsistencyTimeout": 600,
+      "CommitRate": 10000
+    },
+    "Logging": {
+      "EnableLogging": false
+    },
+    "ValidationSettings": {
+      "EnableValidation": false,
+      "ValidationMode": "ROW_LEVEL",
+      "ThreadCount": 5,
+      "PartitionSize": 10000,
+      "FailureMaxCount": 1000,
+      "RecordFailureDelayInMinutes": 5,
+      "RecordSuspendDelayInMinutes": 30,
+      "MaxKeyColumnSize": 8096,
+      "TableFailureMaxCount": 10000,
+      "ValidationOnly": false,
+      "HandleCollationDiff": false,
+      "RecordFailureDelayLimitInMinutes": 1,
+      "SkipLobColumns": false,
+      "ValidationPartialLobSize": 0,
+      "ValidationQueryCdcDelaySeconds": 0
+    }
+  }
+  EOF
+}
+
+resource "aws_dms_replication_task" "cdc" {
+  migration_type            = "cdc"
+  replication_instance_arn  = aws_dms_replication_instance.quay_dms_replication_instance.replication_instance_arn
+  replication_task_id       = "${var.prefix}-dms-cdc-task-tf"
   source_endpoint_arn       = aws_dms_endpoint.quay_dms_src.endpoint_arn
   target_endpoint_arn = aws_dms_endpoint.quay_dms_dest.endpoint_arn
 
