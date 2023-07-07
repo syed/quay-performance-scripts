@@ -152,12 +152,12 @@ resource "aws_dms_replication_task" "test" {
           "rule-id": "2",
           "rule-name": "convert-tinyint-boolean",
           "rule-action": "change-data-type",
-          "rule-target": "schema",
+          "rule-target": "column",
           "object-locator": {
                 "schema-name": "quay",
                 "table-name": "%",
                 "column-name": "%",
-                "data-type": "int1",
+                "data-type": "int1"
           },
           "data-type": {
             "type": "boolean"
