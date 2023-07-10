@@ -20,6 +20,24 @@ resource "aws_instance" "bastion" {
   tags = {
     Name = "${var.prefix}-bastion"
   }
+
+  provisioner "file" {
+    source      = "fix_seq.py"
+    destination = "/home/ec2-user/fix_seq.py"
+  }
+
+  provisioner "file" {
+    source      = "quay_db_schema.dump.sql.update.sql"
+    destination = "/home/ec2-user/quay_db_schema.dump.sql.update.sql"
+  }
+
+    connection {
+    host     = "${aws_instance.bastion.public_dns}"
+    type     = "ssh"
+    user     = "ec2-user"
+    private_key    = "${file("syed-quaydev-ssh-keypair.pem")}"
+  }
+
 }
 
 data "cloudinit_config" "server_config" {

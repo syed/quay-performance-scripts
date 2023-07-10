@@ -20,6 +20,13 @@ resource "aws_db_instance" "quay_db" {
 
   replicate_source_db = var.deploy_type == "secondary" ? var.primary_db_arn : null
   backup_retention_period = 5
+
+  lifecycle {
+    ignore_changes = [
+      snapshot_identifier,
+    ]
+  }
+
 }
 
 resource "aws_db_parameter_group" "quay_db_prameter_group" {
