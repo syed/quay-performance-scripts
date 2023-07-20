@@ -142,3 +142,9 @@ variable "bastion_keypair" {
   default = "syed-quaydev-ssh-keypair"
  
 }
+
+variable "db_snapshot_identifier" {
+  description = "snapshot identifier to create the quay DB from snapshot"
+  type = string
+  default = ""
+}

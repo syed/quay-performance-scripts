@@ -1,7 +1,12 @@
+# Get latest snapshot from production DB
+/* data "aws_db_snapshot" "db_snapshot" {
+  db_snapshot_identifier = var.db_snapshot_identifier
+} */
+
 resource "aws_db_instance" "quay_db" {
   identifier             = "${var.prefix}-quay-db"
-  instance_class         = "db.t3.micro"
-  allocated_storage      = 5
+  instance_class         = "db.r5.2xlarge"
+  allocated_storage      = 5500
   engine                 = "mysql"
   engine_version         = "5.7.37"
   username               = "quay"
@@ -12,6 +17,7 @@ resource "aws_db_instance" "quay_db" {
   publicly_accessible    = true
   skip_final_snapshot    = true
   auto_minor_version_upgrade = false
+  apply_immediately = true
   db_name                = "quay"
   multi_az = var.quay_db_multi_az
   tags = {
@@ -21,10 +27,18 @@ resource "aws_db_instance" "quay_db" {
   replicate_source_db = var.deploy_type == "secondary" ? var.primary_db_arn : null
   backup_retention_period = 5
 
+  snapshot_identifier = var.db_snapshot_identifier
+
   lifecycle {
     ignore_changes = [
       snapshot_identifier,
     ]
+  }
+
+  timeouts {
+    create = "2h"
+    update = "2h"
+    delete = "2h"
   }
 
 }
