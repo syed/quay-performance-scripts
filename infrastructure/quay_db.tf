@@ -1,8 +1,4 @@
-# Get latest snapshot from production DB
-/* data "aws_db_snapshot" "db_snapshot" {
-  db_snapshot_identifier = var.db_snapshot_identifier
-} */
-
+# MySQL
 resource "aws_db_instance" "quay_db" {
   identifier             = "${var.prefix}-quay-db"
   instance_class         = "db.r5.2xlarge"
@@ -76,13 +72,13 @@ resource "aws_rds_cluster_parameter_group" "aurora_pg" {
   parameter {
     name  = "rds.logical_replication"
     value = "1"
-    apply_method = "immediately"
+    apply_method = "pending-reboot"
   }
 
   parameter {
     name  = "wal_sender_timeout"
     value = "0"
-    apply_method = "immediately"
+    apply_method = "pending-reboot"
   }
 }
 
@@ -99,7 +95,7 @@ resource "aws_rds_cluster" "primary" {
   vpc_security_group_ids = [aws_security_group.db_security_group.id]
   apply_immediately = true
   skip_final_snapshot = true
-  db_instance_parameter_group_name = aws_rds_cluster_parameter_group.aurora_pg.name
+  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.aurora_pg.name
 
   serverlessv2_scaling_configuration {
     max_capacity = 2.0
@@ -114,4 +110,5 @@ resource "aws_rds_cluster_instance" "primary" {
   cluster_identifier   = aws_rds_cluster.primary.id
   instance_class       = "db.serverless"
   db_subnet_group_name = aws_db_subnet_group.db_subnet_group.name
+  performance_insights_enabled = true
 }

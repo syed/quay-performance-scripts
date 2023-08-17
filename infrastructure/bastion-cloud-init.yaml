@@ -2,3 +2,5 @@
 runcmd:
   - yum install -y tmux postgresql15.x86_64 mariadb105.x86_64
   - yum install -y python3-psycopg2.x86_64
+  - yum install -y python3-pip.noarch
+  - pip install PyMySQL
