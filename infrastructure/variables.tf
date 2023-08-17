@@ -133,7 +133,7 @@ variable "redis_azs" {
 variable "aurora_version" {
   description = "aurora postgresql version"
   type = string
-  default = "15.2"
+  default = "14.8"
 }
 
 variable "bastion_keypair" {
@@ -147,4 +147,16 @@ variable "db_snapshot_identifier" {
   description = "snapshot identifier to create the quay DB from snapshot"
   type = string
   default = ""
+}
+
+variable "mysql_db_username" {
+  description = "Username for mysql DB"
+  type = string
+  default = "quay"
+}
+
+variable "db_name" {
+  description = "DB name"
+  type = string
+  default = "quay"
 }

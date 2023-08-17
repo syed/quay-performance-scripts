@@ -9,7 +9,7 @@ resource "aws_db_instance" "quay_db" {
   allocated_storage      = 5500
   engine                 = "mysql"
   engine_version         = "5.7.37"
-  username               = "quay"
+  username               = "${var.mysql_db_username}"
   password               = var.db_password
   db_subnet_group_name   = aws_db_subnet_group.db_subnet_group.name
   vpc_security_group_ids = [aws_security_group.db_security_group.id]
@@ -18,7 +18,9 @@ resource "aws_db_instance" "quay_db" {
   skip_final_snapshot    = true
   auto_minor_version_upgrade = false
   apply_immediately = true
-  db_name                = "quay"
+  storage_encrypted = true
+
+  db_name                = "${var.db_name}"
   multi_az = var.quay_db_multi_az
   tags = {
     Deployment = "${var.prefix}"
@@ -66,6 +68,23 @@ resource "aws_rds_global_cluster" "quay_aurora" {
   database_name             = "quay"
 }
 
+resource "aws_rds_cluster_parameter_group" "aurora_pg" {
+  name        = "${var.prefix}-pg"
+  family      = "aurora-postgresql14"
+  description = "Aurora RDS param group for ${var.prefix}"
+
+  parameter {
+    name  = "rds.logical_replication"
+    value = "1"
+    apply_method = "immediately"
+  }
+
+  parameter {
+    name  = "wal_sender_timeout"
+    value = "0"
+    apply_method = "immediately"
+  }
+}
 
 resource "aws_rds_cluster" "primary" {
   engine                    = aws_rds_global_cluster.quay_aurora.engine
@@ -80,6 +99,7 @@ resource "aws_rds_cluster" "primary" {
   vpc_security_group_ids = [aws_security_group.db_security_group.id]
   apply_immediately = true
   skip_final_snapshot = true
+  db_instance_parameter_group_name = aws_rds_cluster_parameter_group.aurora_pg.name
 
   serverlessv2_scaling_configuration {
     max_capacity = 2.0
