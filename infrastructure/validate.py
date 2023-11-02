@@ -12,8 +12,7 @@ pg_conn = psycopg2.connect(database="quay",
 mysql_conn = pymysql.connect(host=sys.argv[3],
                              user='quay',
                              password=sys.argv[2],
-                             database='quay',
-                             cursorclass=pymysql.cursors.DictCursor)
+                             database='quay')
 
 # Open a cursor to perform database operations
 mysql_cursor = mysql_conn.cursor()

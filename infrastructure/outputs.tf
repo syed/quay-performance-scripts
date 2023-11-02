@@ -57,3 +57,8 @@ output "bastion_host" {
   value = aws_instance.bastion.public_dns
   sensitive = false
 }
+
+output "quay_vpc_subnet_ids" {
+  description = "Subnet IDS of quay VPC"
+  value = module.quay_vpc.public_subnets
+}

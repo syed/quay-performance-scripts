@@ -1,7 +1,7 @@
 # MySQL
 resource "aws_db_instance" "quay_db" {
   identifier             = "${var.prefix}-quay-db"
-  instance_class         = "db.r5.2xlarge"
+  instance_class         = "db.r5.16xlarge"
   allocated_storage      = 5500
   engine                 = "mysql"
   engine_version         = "5.7.37"
@@ -34,8 +34,8 @@ resource "aws_db_instance" "quay_db" {
   }
 
   timeouts {
-    create = "2h"
-    update = "2h"
+    create = "4h"
+    update = "4h"
     delete = "2h"
   }
 

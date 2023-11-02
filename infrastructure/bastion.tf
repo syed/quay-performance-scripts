@@ -27,9 +27,16 @@ resource "aws_instance" "bastion" {
   }
 
   provisioner "file" {
-    source      = "quay_db_schema.dump.sql.update.sql"
-    destination = "/home/ec2-user/quay_db_schema.dump.sql.update.sql"
+    source      = "quay_db_schema_dump.sql.update.sql"
+    destination = "/home/ec2-user/quay_db_schema_dump.sql.update.sql"
   }
+
+  provisioner "file" {
+    source      = "drop_tables.sql"
+    destination = "/home/ec2-user/drop_tables.sql"
+  }
+
+
 
     connection {
     host     = "${aws_instance.bastion.public_dns}"

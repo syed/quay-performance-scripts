@@ -114,7 +114,7 @@ resource "aws_dms_replication_instance" "quay_dms_replication_instance" {
   apply_immediately            = true
   auto_minor_version_upgrade   = true
   availability_zone            = "us-east-1a"
-  engine_version               = "3.4.7"
+  engine_version               = "3.5.1"
   multi_az                     = false
   preferred_maintenance_window = "sun:10:30-sun:14:30"
   publicly_accessible          = true
